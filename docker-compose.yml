@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    build: ./rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ms-1:
+    build: ./ms-1
+    environment:
+      - PORT=3000
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  ms-2:
+    build: ./ms-2
+    environment:
+      - PORT=3001
+    restart: on-failure
+    ports:
+      - "3001:3001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  data:
